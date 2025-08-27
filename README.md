@@ -1,24 +1,20 @@
-# Elden Ring Checklist
+# Elden Ring — Mega Checklist (MERN)
 
-monorepo pnpm workspace for server and web.
-
-## dev
+## quickstart
 
 ```bash
+cp .env.example .env
 pnpm i
+pnpm seed
 pnpm dev
 ```
 
-## build
+- api: http://localhost:4000
+- web: http://localhost:5173
+- test user: `test@local` / `test1234`
 
-```bash
-pnpm build
-```
-
-## seed
-
-```bash
-pnpm --filter @app/server seed
-```
-
-login: `test@local` / `test1234`
+## scripts
+- `pnpm dev` → lance server + web
+- `pnpm build` → build des deux paquets
+- `pnpm lint` → lint
+- `pnpm seed` → insère 3 items + 1 user

@@ -1,27 +1,55 @@
 import mongoose from 'mongoose';
+import { env } from '../src/config/env.js';
+import ChecklistItem from '../src/models/ChecklistItem.js';
+import User from '../src/models/User.js';
 import bcrypt from 'bcryptjs';
-import { env } from '../src/config/env';
-import ChecklistItem from '../src/models/ChecklistItem';
-import User from '../src/models/User';
-import Progress from '../src/models/Progress';
 
-async function seed() {
-  await mongoose.connect(env.mongodbUri);
-  await ChecklistItem.deleteMany({});
-  await User.deleteMany({});
-  await Progress.deleteMany({});
+async function run() {
+  await mongoose.connect(env.MONGODB_URI);
 
-  await ChecklistItem.insertMany([
-    { slug: 'great-sword', title: 'Great Sword', category: 'weapon', region: 'limgrave' },
-    { slug: 'golden-seed', title: 'Golden Seed', category: 'upgrade', region: 'limgrave' },
-    { slug: 'margit', title: 'Margit', category: 'boss', region: 'limgrave' },
-  ]);
+  const items = [
+    {
+      slug: 'grottes-limgrave--soldat-arbre',
+      title: 'Soldat de l\u2019Arbre (Limgrave)',
+      category: 'Boss',
+      region: 'Limgrave',
+      weight: 3,
+      isUnique: true
+    },
+    {
+      slug: 'grace-porte-tempete',
+      title: 'Gr\u00E2ce \u2014 Porte de la temp\u00EAte',
+      category: 'Gr\u00E2ce',
+      region: 'Limgrave',
+      weight: 1,
+      isUnique: true
+    },
+    {
+      slug: 'talisman-sceau-rituel',
+      title: 'Talisman \u2014 Sceau rituel',
+      category: 'Talisman',
+      region: 'Liurnia',
+      weight: 2,
+      isUnique: true
+    }
+  ];
 
+  await ChecklistItem.deleteMany({ slug: { $in: items.map((i) => i.slug) } });
+  await ChecklistItem.insertMany(items);
+
+  const email = 'test@local';
   const passwordHash = await bcrypt.hash('test1234', 10);
-  await User.create({ email: 'test@local', passwordHash, displayName: 'Test' });
+  await User.updateOne(
+    { email },
+    { $set: { email, passwordHash, displayName: 'Tester' } },
+    { upsert: true }
+  );
 
-  console.log('seeded');
+  console.log('[seed] ok');
   await mongoose.disconnect();
 }
 
-seed();
+run().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

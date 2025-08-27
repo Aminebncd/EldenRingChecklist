@@ -1,20 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
-export interface AuthRequest extends Request {
-  user?: { id: string; role: string };
+export interface AuthedRequest extends Request {
+  user?: { id: string; role: 'user' | 'admin' };
 }
 
-export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header) return res.status(401).json({ message: 'missing auth header' });
-  const token = header.split(' ')[1];
-  try {
-    const payload = jwt.verify(token, env.jwtSecret) as { id: string; role: string };
-    req.user = { id: payload.id, role: payload.role };
-    next();
-  } catch {
-    res.status(401).json({ message: 'invalid token' });
-  }
+export function auth(required = true) {
+  return (req: AuthedRequest, res: Response, next: NextFunction) => {
+    const hdr = req.headers.authorization || '';
+    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : undefined;
+
+    if (!token) {
+      if (required) return res.status(401).json({ error: 'unauthorized' });
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, env.JWT_SECRET) as {
+        sub: string;
+        role: 'user' | 'admin';
+      };
+      req.user = { id: decoded.sub, role: decoded.role };
+      next();
+    } catch {
+      return res.status(401).json({ error: 'invalid_token' });
+    }
+  };
 }

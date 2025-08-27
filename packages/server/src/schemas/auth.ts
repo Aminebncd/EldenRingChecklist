@@ -1,14 +1,12 @@
 import { z } from 'zod';
 
-const email = z.string().regex(/.+@.+/);
-
 export const registerSchema = z.object({
-  email,
+  email: z.string().email(),
   password: z.string().min(6),
-  displayName: z.string().optional(),
+  displayName: z.string().min(1).optional()
 });
 
 export const loginSchema = z.object({
-  email,
-  password: z.string(),
+  email: z.string().email(),
+  password: z.string().min(6)
 });

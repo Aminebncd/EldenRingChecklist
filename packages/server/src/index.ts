@@ -1,26 +1,27 @@
 import express from 'express';
-import cors from 'cors';
 import mongoose from 'mongoose';
-import { env } from './config/env';
-import items from './routes/items';
-import auth from './routes/auth';
-import progress from './routes/progress';
+import cors from 'cors';
+import { env } from './config/env.js';
 
-export const app = express();
-app.use(cors());
-app.use(express.json());
+import itemsRoute from './routes/items.js';
+import authRoute from './routes/auth.js';
+import progressRoute from './routes/progress.js';
 
-app.use('/items', items);
-app.use('/auth', auth);
-app.use('/progress', progress);
+const app = express();
+app.use(cors({ origin: [/^http:\/\/localhost:\d+$/], credentials: false }));
+app.use(express.json({ limit: '1mb' }));
 
-export async function start() {
-  await mongoose.connect(env.mongodbUri);
-  return app.listen(env.port, () => {
-    console.log(`server on ${env.port}`);
-  });
+app.get('/health', (_req, res) => res.json({ ok: true }));
+app.use('/items', itemsRoute);
+app.use('/auth', authRoute);
+app.use('/progress', progressRoute);
+
+async function start() {
+  await mongoose.connect(env.MONGODB_URI);
+  app.listen(env.PORT, () => console.log(`[server] http://localhost:${env.PORT}`));
 }
 
-if (require.main === module) {
-  start();
-}
+start().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

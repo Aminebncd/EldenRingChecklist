@@ -1,27 +1,30 @@
-import express from 'express';
-import Progress from '../models/Progress';
-import { authMiddleware, AuthRequest } from '../utils/authMiddleware';
-import { progressBulkSchema } from '../schemas/progress';
+import { Router } from 'express';
+import { auth, AuthedRequest } from '../utils/authMiddleware.js';
+import { bulkProgressSchema } from '../schemas/progress.js';
+import Progress from '../models/Progress.js';
 
-const router = express.Router();
+const r = Router();
 
-router.get('/', authMiddleware, async (req: AuthRequest, res) => {
-  const progress = await Progress.findOne({ userId: req.user!.id });
-  res.json(progress?.items || {});
+r.get('/', auth(true), async (req: AuthedRequest, res) => {
+  const doc = await Progress.findOne({ userId: req.user!.id }).lean();
+  const map = doc?.items ? Object.fromEntries([...doc.items as [string, unknown][]]) : {};
+  res.json(map);
 });
 
-router.post('/bulk', authMiddleware, async (req: AuthRequest, res) => {
-  const { updates } = progressBulkSchema.parse(req.body);
-  const progress = (await Progress.findOneAndUpdate(
-    { userId: req.user!.id },
-    { $setOnInsert: { userId: req.user!.id } },
-    { new: true, upsert: true }
-  )) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  updates.forEach((u) => {
-    progress.items.set(u.slug, { status: u.status, note: u.note, updatedAt: new Date() });
-  });
-  await progress.save();
-  res.json({ ok: true });
+r.post('/bulk', auth(true), async (req: AuthedRequest, res) => {
+  const parse = bulkProgressSchema.safeParse(req.body);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+
+  const { updates } = parse.data;
+  const doc = (await Progress.findOne({ userId: req.user!.id })) || (await Progress.create({ userId: req.user!.id }));
+
+  for (const u of updates) {
+    doc.items.set(u.slug, { status: u.status, note: u.note, updatedAt: new Date() });
+  }
+  await doc.save();
+
+  const map = Object.fromEntries([...doc.items]);
+  res.json(map);
 });
 
-export default router;
+export default r;

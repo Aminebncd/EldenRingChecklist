@@ -1,46 +1,61 @@
-import { useQuery } from '@tanstack/react-query';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { useFilters } from '../store/useFilters';
-import CategoryGroup from '../components/CategoryGroup';
+import Filters from '../components/Filters';
 import ProgressBar from '../components/ProgressBar';
+import CategoryGroup from '../components/CategoryGroup';
 
 export default function Home() {
-  const filters = useFilters();
-  const { data: items = [] } = useQuery({
-    queryKey: ['items', filters],
+  const { category, region, q } = useFilters();
+  const qc = useQueryClient();
+
+  const itemsQuery = useQuery({
+    queryKey: ['items', { category, region, q }],
     queryFn: async () => {
-      const params: any = {};
-      if (filters.category) params.category = filters.category;
-      if (filters.region) params.region = filters.region;
-      if (filters.q) params.q = filters.q;
-      const res = await api.get('/items', { params });
-      return res.data;
-    },
+      const { data } = await api.get('/items', { params: { category, region, q } });
+      return data as any[];
+    }
   });
 
-  const { data: progress = {} } = useQuery({
+  const progressQuery = useQuery({
     queryKey: ['progress'],
-    queryFn: async () => (await api.get('/progress')).data,
-    enabled: !!localStorage.getItem('token'),
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/progress');
+        return data as Record<string, any>;
+      } catch {
+        return {} as Record<string, any>;
+      }
+    }
   });
 
-  const totalWeight = items.reduce((s: number, i: any) => s + (i.weight ?? 1), 0);
-  const doneWeight = items.reduce((s: number, i: any) => {
-    const p = progress[i.slug];
-    return s + (p && p.status === 'checked' ? i.weight ?? 1 : 0);
-  }, 0);
+  const items = itemsQuery.data || [];
+  const progress = progressQuery.data || {};
 
-  const groups = items.reduce((acc: Record<string, any[]>, item: any) => {
-    acc[item.region] = acc[item.region] || [];
-    acc[item.region].push(item);
+  const groups: Record<string, any[]> = items.reduce((acc: any, it) => {
+    const k = it.region || 'Autre';
+    (acc[k] ||= []).push(it);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {});
+
+  const onLocalChange = async (slug: string, s: string) => {
+    if (slug === '*bulk*') {
+      // naive refresh after bulk; server bulk could be added later
+      await qc.invalidateQueries({ queryKey: ['progress'] });
+      return;
+    }
+    progress[slug] = { ...(progress[slug] || {}), status: s };
+    qc.setQueryData(['progress'], { ...progress });
+  };
 
   return (
-    <div className="p-4">
-      <ProgressBar percent={totalWeight ? (doneWeight / totalWeight) * 100 : 0} />
-      {Object.entries(groups).map(([region, list]) => (
-        <CategoryGroup key={region} title={region} items={list} progress={progress} />
+    <div className="space-y-4">
+      <Filters items={items} />
+      <ProgressBar items={items} progress={progress} />
+
+      {Object.entries(groups).map(([title, group]) => (
+        <CategoryGroup key={title} title={title} items={group} progress={progress} onLocalChange={onLocalChange} />
       ))}
     </div>
   );
