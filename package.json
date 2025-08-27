@@ -1,19 +1,11 @@
 {
   "name": "eldenring-checklist",
   "private": true,
-  "version": "0.0.0",
+  "packageManager": "pnpm@9.7.0",
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
-    "test": "pnpm -r test"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.2.2"
+    "dev": "pnpm -w -r dev",
+    "build": "pnpm -w -r build",
+    "lint": "pnpm -w -r lint",
+    "seed": "pnpm --filter @app/server seed"
   }
 }

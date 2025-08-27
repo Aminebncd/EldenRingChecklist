@@ -1,21 +1,21 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Stats from './pages/Stats';
-import ImportPage from './pages/Import';
-import Login from './pages/Login';
 
 export default function App() {
+  const loc = useLocation();
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/stats" element={<Stats />} />
-        <Route path="/import" element={<ImportPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <main className="max-w-6xl mx-auto p-4 space-y-6">
+        <div className="flex items-center gap-3 text-sm text-zinc-400">
+          <Link to="/" className={loc.pathname === '/' ? 'text-white' : ''}>liste</Link>
+          <span>·</span>
+          <Link to="/stats" className={loc.pathname === '/stats' ? 'text-white' : ''}>stats</Link>
+          <span>·</span>
+          <Link to="/import" className={loc.pathname === '/import' ? 'text-white' : ''}>import</Link>
+        </div>
+        <Outlet />
+      </main>
     </div>
   );
 }

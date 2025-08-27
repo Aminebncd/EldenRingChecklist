@@ -1,22 +1,28 @@
-import express from 'express';
-import ChecklistItem from '../models/ChecklistItem';
-import { itemsQuerySchema } from '../schemas/items';
-import { AuthRequest, authMiddleware } from '../utils/authMiddleware';
+import { Router } from 'express';
+import ChecklistItem from '../models/ChecklistItem.js';
+import { itemsQuerySchema } from '../schemas/items.js';
+import { auth, AuthedRequest } from '../utils/authMiddleware.js';
 
-const router = express.Router();
+const r = Router();
 
-router.get('/', async (req, res) => {
-  const { category, region, q } = itemsQuerySchema.parse(req.query);
-  const filter: Record<string, unknown> = {};
-  if (category) filter.category = category;
-  if (region) filter.region = region;
-  if (q) filter.title = { $regex: q, $options: 'i' };
-  const items = await ChecklistItem.find(filter).sort({ category: 1, region: 1, title: 1 });
+r.get('/', async (req, res) => {
+  const parse = itemsQuerySchema.safeParse(req.query);
+  if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
+
+  const { category, region, q } = parse.data;
+  const query: Record<string, unknown> = {};
+  if (category) query.category = category;
+  if (region) query.region = region;
+  if (q) query.title = { $regex: q, $options: 'i' };
+
+  const items = await ChecklistItem.find(query).sort({ category: 1, region: 1, title: 1 }).lean();
   res.json(items);
 });
 
-router.post('/bulk-upsert', authMiddleware, (_req: AuthRequest, res) => {
-  res.status(501).json({ message: 'not implemented' });
+r.post('/bulk-upsert', auth(true), async (req: AuthedRequest, res) => {
+  // réservé admin – stub 501
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'forbidden' });
+  res.status(501).json({ error: 'not_implemented' });
 });
 
-export default router;
+export default r;
