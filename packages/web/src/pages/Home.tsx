@@ -41,12 +41,23 @@ export default function Home() {
 
   const onLocalChange = async (slug: string, s: string) => {
     if (slug === '*bulk*') {
-      // naive refresh after bulk; server bulk could be added later
       await qc.invalidateQueries({ queryKey: ['progress'] });
       return;
     }
-    progress[slug] = { ...(progress[slug] || {}), status: s };
-    qc.setQueryData(['progress'], { ...progress });
+    // optimistic update using updater to avoid stale refs
+    const previous = qc.getQueryData(['progress']) as Record<string, any> | undefined;
+    qc.setQueryData(['progress'], (old: any) => {
+      const next = { ...(old || {}) } as Record<string, any>;
+      next[slug] = { ...(next[slug] || {}), status: s };
+      return next;
+    });
+    try {
+      await api.post('/progress/bulk', { updates: [{ slug, status: s }] });
+    } catch (e) {
+      // revert on error
+      qc.setQueryData(['progress'], previous || {});
+      console.error(e);
+    }
   };
 
   return (
