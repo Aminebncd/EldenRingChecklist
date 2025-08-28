@@ -9,7 +9,7 @@ import progressRoute from './routes/progress.js';
 
 const app = express();
 app.use(cors({ origin: [/^http:\/\/localhost:\d+$/], credentials: false }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '5mb' }));
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/items', itemsRoute);

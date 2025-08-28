@@ -3,9 +3,15 @@
   "private": true,
   "packageManager": "pnpm@9.7.0",
   "scripts": {
-    "dev": "pnpm -w -r dev",
-    "build": "pnpm -w -r build",
-    "lint": "pnpm -w -r lint",
-    "seed": "pnpm --filter @app/server seed"
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "seed": "pnpm --filter @app/server seed",
+    "db:up": "docker compose up -d mongo",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mongo"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0"
   }
 }

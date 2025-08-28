@@ -41,7 +41,7 @@ async function run() {
   const passwordHash = await bcrypt.hash('test1234', 10);
   await User.updateOne(
     { email },
-    { $set: { email, passwordHash, displayName: 'Tester' } },
+    { $set: { email, passwordHash, displayName: 'Tester', role: 'admin' } },
     { upsert: true }
   );
 
