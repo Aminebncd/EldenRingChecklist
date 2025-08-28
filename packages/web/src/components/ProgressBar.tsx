@@ -9,7 +9,7 @@ export default function ProgressBar({ items, progress }: { items: any[]; progres
     <div className="card">
       <div className="text-sm mb-2">progression pondérée: {pct}%</div>
       <div className="w-full h-3 rounded-full bg-zinc-800 overflow-hidden">
-        <div className="h-full bg-zinc-200" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-300" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import { api } from '../api/client';
 
 type InputItem = {
   title: string;
+  slug?: string;
+  expansion?: 'base' | 'sote';
   category?: string;
   subcategory?: string;
   region?: string;
@@ -23,7 +25,7 @@ export default function ImportDialog() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const headers = useMemo(() => {
-    const base = ['title', 'category', 'subcategory', 'region', 'weight', 'tags', 'prerequisites', 'notes'];
+    const base = ['title', 'slug', 'expansion', 'category', 'subcategory', 'region', 'weight', 'tags', 'prerequisites', 'notes'];
     return base;
   }, []);
 
@@ -45,10 +47,18 @@ export default function ImportDialog() {
         } else {
           wb = XLSX.read(typeof data === 'string' ? data : '', { type: 'string' });
         }
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: '' });
-        const mapped = mapRows(json);
-        setRows(mapped);
+        const all: InputItem[] = [];
+        const isXlsx = ext === 'xlsx' || ext === 'xls';
+        for (const name of wb.SheetNames) {
+          const ws = wb.Sheets[name];
+          const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: '' });
+          const rows = mapRows(json);
+          const sheetExp = isXlsx ? inferExpansion(name) : undefined;
+          for (const r of rows) {
+            all.push({ ...r, expansion: r.expansion || sheetExp });
+          }
+        }
+        setRows(all);
       } catch (err) {
         console.error(err);
         setError('échec de lecture du fichier');
@@ -86,12 +96,14 @@ export default function ImportDialog() {
       {!token && (
         <div className="mb-2 text-amber-400 text-sm">attention: token manquant — login requis pour importer</div>
       )}
+      <div className="text-xs text-zinc-400 mb-2">multi-feuilles: sheet "base" vs "shadow" → détecté automatiquement</div>
       <input
         type="file"
         accept=".csv,.tsv,.xlsx,.xls"
         onChange={onFile}
         className="block text-sm file:btn file:mr-2"
       />
+      {/* csv/tsv: l'extension est lue depuis les colonnes (_sheet/expansion) */}
 
       {error && <div className="mt-2 text-red-400 text-sm">{error}</div>}
       {message && <div className="mt-2 text-emerald-400 text-sm">{message}</div>}
@@ -119,6 +131,8 @@ export default function ImportDialog() {
                 {rows.slice(0, 50).map((r, i) => (
                   <tr key={i} className="border-t border-zinc-800">
                     <td className="px-2 py-1">{r.title}</td>
+                    <td className="px-2 py-1">{r.slug || ''}</td>
+                    <td className="px-2 py-1">{r.expansion || 'base'}</td>
                     <td className="px-2 py-1">{r.category || ''}</td>
                     <td className="px-2 py-1">{r.subcategory || ''}</td>
                     <td className="px-2 py-1">{r.region || ''}</td>
@@ -147,6 +161,8 @@ function mapRows(rows: Array<Record<string, unknown>>): InputItem[] {
 function normalizeItem(r: InputItem): InputItem {
   return {
     title: r.title,
+    slug: emptyToUndef(r.slug),
+    expansion: (r.expansion as any) || undefined,
     category: emptyToUndef(r.category),
     subcategory: emptyToUndef(r.subcategory),
     region: emptyToUndef(r.region),
@@ -164,6 +180,8 @@ function normalizeKeys(row: Record<string, unknown>): Record<string, unknown> {
     const key = k.trim().toLowerCase();
     switch (key) {
       case 'title':
+      case 'slug':
+      case 'expansion':
       case 'category':
       case 'subcategory':
       case 'region':
@@ -174,6 +192,12 @@ function normalizeKeys(row: Record<string, unknown>): Record<string, unknown> {
       case 'isunique':
         out[key === 'isunique' ? 'isUnique' : key] = v;
         break;
+      case '_sheet': {
+        const s = String(v || '').toLowerCase();
+        const exp = s.includes('shadow') || s.includes('sote') || s.includes('dlc') ? 'sote' : s.includes('base') ? 'base' : undefined;
+        if (exp) out['expansion'] = exp;
+        break;
+      }
       default:
         break;
     }
@@ -197,6 +221,20 @@ function numOr(v: unknown, def: number): number {
 
 function emptyToUndef(v: unknown): string | undefined {
   if (v == null) return undefined;
-  const s = String(v).trim();
+  const s0 = String(v).trim();
+  const s = trimQuotes(s0).trim();
   return s ? s : undefined;
+}
+
+function inferExpansion(sheetName: string): 'base' | 'sote' {
+  const n = sheetName.toLowerCase();
+  if (n.includes('shadow') || n.includes('sote') || n.includes('dlc')) return 'sote';
+  return 'base';
+}
+
+function trimQuotes(s: string): string {
+  if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith('"') && s.endsWith('"'))) {
+    return s.slice(1, -1);
+  }
+  return s;
 }

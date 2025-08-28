@@ -6,8 +6,8 @@ import Progress from '../models/Progress.js';
 const r = Router();
 
 r.get('/', auth(true), async (req: AuthedRequest, res) => {
-  const doc = await Progress.findOne({ userId: req.user!.id }).lean();
-  const map = doc?.items ? Object.fromEntries([...doc.items as [string, unknown][]]) : {};
+  const doc = await Progress.findOne({ userId: req.user!.id });
+  const map = doc?.items ? Object.fromEntries(doc.items.entries()) : {};
   res.json(map);
 });
 

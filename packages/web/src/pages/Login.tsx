@@ -4,7 +4,7 @@ import { api } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [email, setEmail] = useState('test@local');
+  const [email, setEmail] = useState('test@local.dev');
   const [password, setPassword] = useState('test1234');
   const [err, setErr] = useState<string | null>(null);
   const nav = useNavigate();

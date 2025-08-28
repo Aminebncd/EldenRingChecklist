@@ -6,8 +6,8 @@
   --panel: theme(colors.zinc.900);
 }
 
-.btn { @apply px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm; }
+.btn { @apply px-3 py-1.5 rounded-xl text-sm transition-colors border border-zinc-700; }
 .input { @apply bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-600; }
 .select { @apply bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm; }
-.card { @apply bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4; }
+.card { @apply bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 shadow-sm; }
 .link { @apply text-zinc-300 hover:text-white underline; }

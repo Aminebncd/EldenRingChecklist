@@ -1,9 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ItemRow from './ItemRow';
+import { api } from '../api/client';
 
 export default function CategoryGroup({ title, items, progress, onLocalChange }: { title: string; items: any[]; progress: Record<string, any>; onLocalChange: (slug: string, s: string) => void }) {
   const bulk = async (s: 'checked' | 'unchecked' | 'skipped') => {
     onLocalChange('*bulk*', s);
+    try {
+      const updates = items.map((it) => ({ slug: it.slug, status: s }));
+      await api.post('/progress/bulk', { updates });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (

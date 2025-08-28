@@ -4,6 +4,7 @@ const ChecklistItemSchema = new Schema(
   {
     slug: { type: String, unique: true, index: true },
     title: { type: String, required: true },
+    expansion: { type: String, enum: ['base', 'sote'], default: 'base', index: true },
     category: { type: String, index: true },
     subcategory: { type: String },
     region: { type: String, index: true },

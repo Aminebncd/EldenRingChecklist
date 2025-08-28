@@ -14,6 +14,10 @@ r.get('/', async (req, res) => {
   const query: Record<string, unknown> = {};
   if (category) query.category = category;
   if (region) query.region = region;
+  if (parse.data.expansion) {
+    if (parse.data.expansion === 'base') query.$or = [{ expansion: 'base' }, { expansion: { $exists: false } }];
+    else query.expansion = parse.data.expansion;
+  }
   if (q) query.title = { $regex: q, $options: 'i' };
 
   const items = await ChecklistItem.find(query).sort({ category: 1, region: 1, title: 1 }).lean();
@@ -32,19 +36,29 @@ r.post('/bulk-upsert', auth(true), async (req: AuthedRequest, res) => {
   const upserted: Array<{ slug: string; created: boolean }> = [];
 
   for (const entry of input) {
-    const baseSlug = toBaseSlug(entry.title);
+    // prefer provided slug; else derive from title
+    const preferred = entry.slug?.toLowerCase().trim() || toBaseSlug(entry.title);
 
-    // reuse base slug if an item already exists for idempotency
-    const existsInDb = await ChecklistItem.exists({ slug: baseSlug });
+    const existsInDb = await ChecklistItem.exists({ slug: preferred });
     const exists = async (s: string) => usedSlugs.has(s) || (await ChecklistItem.exists({ slug: s })) != null;
 
-    const slug = existsInDb ? baseSlug : await slugifyUnique(entry.title, exists);
+    let slug = preferred;
+    if (!existsInDb && usedSlugs.has(slug)) {
+      // same slug already used in this batch → suffix
+      let i = 2;
+      while (await exists(`${slug}-${i}`)) i++;
+      slug = `${slug}-${i}`;
+    } else if (!existsInDb && !entry.slug) {
+      // generate unique slug for creations when not explicitly provided
+      slug = await slugifyUnique(entry.title, exists);
+    }
     usedSlugs.add(slug);
 
     const toSet: Record<string, unknown> = {
       slug,
       title: entry.title,
     };
+    if (entry.expansion !== undefined) toSet.expansion = entry.expansion;
     if (entry.category !== undefined) toSet.category = entry.category;
     if (entry.subcategory !== undefined) toSet.subcategory = entry.subcategory;
     if (entry.region !== undefined) toSet.region = entry.region;

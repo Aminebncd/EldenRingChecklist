@@ -31,7 +31,7 @@ pnpm dev
 
 - api: http://localhost:4000
 - web: http://localhost:5173
-- test user: `test@local` / `test1234`
+- test user: `test@local.dev` / `test1234`
 
 si vous n'avez pas docker, installez mongodb localement ou pointez `MONGODB_URI` vers une instance existante (atlas, etc.).
 
@@ -51,6 +51,7 @@ si vous n'avez pas docker, installez mongodb localement ou pointez `MONGODB_URI`
 - `pnpm seed` → insère 3 items + 1 user
 - `pnpm db:up` / `pnpm db:down` → démarrer/arrêter MongoDB (docker)
 - `pnpm db:logs` → logs Mongo
+- `pnpm --filter @app/server import:csv` → importe le fichier `checklist_seed.csv` à la racine (ou passez un chemin: `pnpm --filter @app/server exec tsx scripts/importFromFile.ts <chemin>`)
 
 ## endpoints principaux
 - `GET /items` → query `category?`, `region?`, `q?` → liste d’items
@@ -60,9 +61,10 @@ si vous n'avez pas docker, installez mongodb localement ou pointez `MONGODB_URI`
 ## import csv/xlsx
 - page `import` (protégée par login)
 - formats supportés: `.csv`, `.tsv`, `.xlsx`, `.xls`
-- colonnes recommandées: `title,category,subcategory,region,tags,prerequisites,weight,notes`
+- colonnes recommandées: `title,expansion,category,subcategory,region,tags,prerequisites,weight,notes`
 - `tags` / `prerequisites`: chaîne séparée par `,` → tableau
 - `weight`: nombre strictement positif (défaut: 1)
+ - `expansion`: `base` ou `sote` (si absent, déduit du nom de feuille pour XLSX: "base" vs "shadow")
 
 exemple csv (3 lignes, avec un doublon):
 
@@ -74,7 +76,7 @@ Boss A,Boss,Limgrave,"field,boss",3
 ```
 
 workflow:
-- uploader le fichier → aperçu des 50 premières lignes
+- uploader le fichier → aperçu des 50 premières lignes (pour XLSX, toutes les feuilles sont lues; "shadow/sote/dlc" → `sote`)
 - cliquer “importer” → POST `/items/bulk-upsert` → `{ count, upserted[] }`
 
 ## outils conseillés

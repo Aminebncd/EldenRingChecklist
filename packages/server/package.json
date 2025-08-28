@@ -6,6 +6,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "seed": "tsx scripts/seed.ts",
+    "import:csv": "tsx scripts/importFromFile.ts ../../checklist_seed.csv",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

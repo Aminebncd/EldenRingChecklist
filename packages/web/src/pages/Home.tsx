@@ -7,13 +7,13 @@ import ProgressBar from '../components/ProgressBar';
 import CategoryGroup from '../components/CategoryGroup';
 
 export default function Home() {
-  const { category, region, q } = useFilters();
+  const { category, region, expansion, q } = useFilters();
   const qc = useQueryClient();
 
   const itemsQuery = useQuery({
-    queryKey: ['items', { category, region, q }],
+    queryKey: ['items', { category, region, expansion, q }],
     queryFn: async () => {
-      const { data } = await api.get('/items', { params: { category, region, q } });
+      const { data } = await api.get('/items', { params: { category, region, expansion, q } });
       return data as any[];
     }
   });
