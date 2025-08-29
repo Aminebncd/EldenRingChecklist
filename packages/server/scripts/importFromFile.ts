@@ -14,6 +14,7 @@ type InputItem = {
   category?: string;
   subcategory?: string;
   region?: string;
+  location?: string;
   tags?: string[];
   prerequisites?: string[];
   weight?: number;
@@ -84,6 +85,7 @@ async function main() {
     if (entry.category !== undefined) $set.category = entry.category;
     if (entry.subcategory !== undefined) $set.subcategory = entry.subcategory;
     if (entry.region !== undefined) $set.region = entry.region;
+    if (entry.location !== undefined) $set.location = entry.location;
     if (entry.tags !== undefined) $set.tags = entry.tags;
     if (entry.prerequisites !== undefined) $set.prerequisites = entry.prerequisites;
     if (entry.weight !== undefined) $set.weight = entry.weight;
@@ -110,6 +112,7 @@ function normalizeKeys(row: Record<string, unknown>): Record<string, unknown> {
       case 'category':
       case 'subcategory':
       case 'region':
+      case 'location':
       case 'tags':
       case 'prerequisites':
       case 'weight':
@@ -138,6 +141,7 @@ function normalizeItem(r: InputItem): InputItem {
     category: emptyToUndef(r.category),
     subcategory: emptyToUndef(r.subcategory),
     region: emptyToUndef(r.region),
+    location: emptyToUndef(r.location),
     tags: arrify(r.tags),
     prerequisites: arrify(r.prerequisites),
     weight: numOr((r as any).weight, 1),

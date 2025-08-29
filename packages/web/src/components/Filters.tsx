@@ -3,10 +3,14 @@ import { useMemo } from 'react';
 import { useFilters } from '../store/useFilters';
 
 export default function Filters({ items }: { items: any[] }) {
-  const { category, region, expansion, q, setCategory, setRegion, setExpansion, setQ } = useFilters();
+  const { category, region, location, expansion, q, setCategory, setRegion, setLocation, setExpansion, setQ } = useFilters();
 
   const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(), [items]);
   const regions = useMemo(() => Array.from(new Set(items.map((i) => i.region).filter(Boolean))).sort(), [items]);
+  const locations = useMemo(() => {
+    const filtered = region ? items.filter((i) => i.region === region) : items;
+    return Array.from(new Set(filtered.map((i) => i.location).filter(Boolean))).sort();
+  }, [items, region]);
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -26,6 +30,12 @@ export default function Filters({ items }: { items: any[] }) {
         <option value="">toutes régions</option>
         {regions.map((r) => (
           <option key={r} value={r}>{r}</option>
+        ))}
+      </select>
+      <select className="select" value={location || ''} onChange={(e) => setLocation(e.target.value || undefined)}>
+        <option value="">tous lieux</option>
+        {locations.map((l) => (
+          <option key={l} value={l}>{l}</option>
         ))}
       </select>
     </div>

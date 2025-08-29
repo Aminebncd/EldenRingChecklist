@@ -10,10 +10,11 @@ r.get('/', async (req, res) => {
   const parse = itemsQuerySchema.safeParse(req.query);
   if (!parse.success) return res.status(400).json({ error: parse.error.flatten() });
 
-  const { category, region, q } = parse.data;
+  const { category, region, location, q } = parse.data;
   const query: Record<string, unknown> = {};
   if (category) query.category = category;
   if (region) query.region = region;
+  if (location) query.location = location;
   if (parse.data.expansion) {
     if (parse.data.expansion === 'base') query.$or = [{ expansion: 'base' }, { expansion: { $exists: false } }];
     else query.expansion = parse.data.expansion;
@@ -22,6 +23,15 @@ r.get('/', async (req, res) => {
 
   const items = await ChecklistItem.find(query).sort({ category: 1, region: 1, title: 1 }).lean();
   res.json(items);
+});
+
+// detail endpoint: fetch single item by slug
+r.get('/:slug', async (req, res) => {
+  const slug = String(req.params.slug || '').trim().toLowerCase();
+  if (!slug) return res.status(400).json({ error: 'missing_slug' });
+  const item = await ChecklistItem.findOne({ slug }).lean();
+  if (!item) return res.status(404).json({ error: 'not_found' });
+  res.json(item);
 });
 
 r.post('/bulk-upsert', auth(true), async (req: AuthedRequest, res) => {
@@ -62,6 +72,7 @@ r.post('/bulk-upsert', auth(true), async (req: AuthedRequest, res) => {
     if (entry.category !== undefined) toSet.category = entry.category;
     if (entry.subcategory !== undefined) toSet.subcategory = entry.subcategory;
     if (entry.region !== undefined) toSet.region = entry.region;
+    if (entry.location !== undefined) toSet.location = entry.location;
     if (entry.tags !== undefined) toSet.tags = entry.tags;
     if (entry.prerequisites !== undefined) toSet.prerequisites = entry.prerequisites;
     if (entry.weight !== undefined) toSet.weight = entry.weight;

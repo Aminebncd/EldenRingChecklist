@@ -5,15 +5,16 @@ import { useFilters } from '../store/useFilters';
 import Filters from '../components/Filters';
 import ProgressBar from '../components/ProgressBar';
 import CategoryGroup from '../components/CategoryGroup';
+import RegionMap from '../components/RegionMap';
 
 export default function Home() {
-  const { category, region, expansion, q } = useFilters();
+  const { category, region, location, expansion, q } = useFilters();
   const qc = useQueryClient();
 
   const itemsQuery = useQuery({
-    queryKey: ['items', { category, region, expansion, q }],
+    queryKey: ['items', { category, region, location, expansion, q }],
     queryFn: async () => {
-      const { data } = await api.get('/items', { params: { category, region, expansion, q } });
+      const { data } = await api.get('/items', { params: { category, region, location, expansion, q } });
       return data as any[];
     }
   });
@@ -66,7 +67,10 @@ export default function Home() {
       <ProgressBar items={items} progress={progress} />
 
       {Object.entries(groups).map(([title, group]) => (
-        <CategoryGroup key={title} title={title} items={group} progress={progress} onLocalChange={onLocalChange} />
+        <div key={title} className="space-y-3">
+          <RegionMap region={title} items={group} />
+          <CategoryGroup title={title} items={group} progress={progress} onLocalChange={onLocalChange} />
+        </div>
       ))}
     </div>
   );

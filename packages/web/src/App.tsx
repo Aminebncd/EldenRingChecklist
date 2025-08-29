@@ -13,6 +13,8 @@ export default function App() {
           <Link to="/stats" className={loc.pathname === '/stats' ? 'text-white' : ''}>stats</Link>
           <span>·</span>
           <Link to="/import" className={loc.pathname === '/import' ? 'text-white' : ''}>import</Link>
+          <span>·</span>
+          <Link to="/wiki" className={loc.pathname.startsWith('/wiki') ? 'text-white' : ''}>wiki</Link>
         </div>
         <Outlet />
       </main>

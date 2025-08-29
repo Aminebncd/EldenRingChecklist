@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function ItemRow({ item, status, onChange }: { item: any; status?: string; onChange: (s: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -12,7 +13,7 @@ export default function ItemRow({ item, status, onChange }: { item: any; status?
       <div className="flex items-center justify-between py-2 border-b border-zinc-800/60">
         <div>
           <div className="font-medium flex items-center gap-2">
-            <span>{item.title}</span>
+            <Link to={`/item/${item.slug}`} className="hover:underline">{item.title}</Link>
             {item.expansion && (
               <span className={`text-[10px] px-2 py-0.5 rounded-full border ${item.expansion === 'sote' ? 'border-amber-500 text-amber-400' : 'border-zinc-600 text-zinc-300'}`}>
                 {item.expansion}

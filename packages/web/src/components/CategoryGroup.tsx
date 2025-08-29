@@ -35,11 +35,35 @@ export default function CategoryGroup({ title, items, progress, onLocalChange }:
           <button className="btn" onClick={(e) => { e.preventDefault(); bulk('skipped'); }}>skip</button>
         </div>
       </summary>
-      <div className="mt-3">
-        {items.map((it) => (
-          <ItemRow key={it.slug} item={it} status={progress[it.slug]?.status || 'unchecked'} onChange={(s) => onLocalChange(it.slug, s)} />
+      <div className="mt-3 space-y-4">
+        {Object.entries(groupByLocation(items)).map(([loc, group]) => (
+          <div key={loc}>
+            <div id={`loc-${slugify(loc)}`} className="text-xs uppercase tracking-wide text-zinc-400 mb-1">{loc}</div>
+            <div>
+              {group.map((it) => (
+                <ItemRow key={it.slug} item={it} status={progress[it.slug]?.status || 'unchecked'} onChange={(s) => onLocalChange(it.slug, s)} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </details>
   );
+}
+
+function slugify(s: string): string {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'loc';
+}
+
+function groupByLocation(items: any[]): Record<string, any[]> {
+  return items.reduce((acc: Record<string, any[]>, it: any) => {
+    const k = it.location || 'Autre';
+    (acc[k] ||= []).push(it);
+    return acc;
+  }, {});
 }

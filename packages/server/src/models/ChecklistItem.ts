@@ -8,6 +8,7 @@ const ChecklistItemSchema = new Schema(
     category: { type: String, index: true },
     subcategory: { type: String },
     region: { type: String, index: true },
+    location: { type: String, index: true },
     tags: [{ type: String }],
     prerequisites: [{ type: String }],
     isUnique: { type: Boolean, default: true },

@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const itemsQuerySchema = z.object({
   category: z.string().optional(),
   region: z.string().optional(),
+  location: z.string().optional(),
   expansion: z.enum(['base', 'sote']).optional(),
   q: z.string().optional(),
 });
@@ -16,6 +17,7 @@ export const bulkUpsertSchema = z
       category: z.string().optional(),
       subcategory: z.string().optional(),
       region: z.string().optional(),
+      location: z.string().optional(),
       tags: z.array(z.string()).optional(),
       prerequisites: z.array(z.string()).optional(),
       weight: z.number().positive().optional(),

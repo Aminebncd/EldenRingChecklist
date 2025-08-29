@@ -9,6 +9,7 @@ type InputItem = {
   category?: string;
   subcategory?: string;
   region?: string;
+  location?: string;
   tags?: string[];
   prerequisites?: string[];
   weight?: number;
@@ -25,7 +26,7 @@ export default function ImportDialog() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const headers = useMemo(() => {
-    const base = ['title', 'slug', 'expansion', 'category', 'subcategory', 'region', 'weight', 'tags', 'prerequisites', 'notes'];
+    const base = ['title', 'slug', 'expansion', 'category', 'subcategory', 'region', 'location', 'weight', 'tags', 'prerequisites', 'notes'];
     return base;
   }, []);
 
@@ -136,6 +137,7 @@ export default function ImportDialog() {
                     <td className="px-2 py-1">{r.category || ''}</td>
                     <td className="px-2 py-1">{r.subcategory || ''}</td>
                     <td className="px-2 py-1">{r.region || ''}</td>
+                    <td className="px-2 py-1">{r.location || ''}</td>
                     <td className="px-2 py-1">{r.weight ?? ''}</td>
                     <td className="px-2 py-1">{(r.tags || []).join(', ')}</td>
                     <td className="px-2 py-1">{(r.prerequisites || []).join(', ')}</td>
@@ -166,6 +168,7 @@ function normalizeItem(r: InputItem): InputItem {
     category: emptyToUndef(r.category),
     subcategory: emptyToUndef(r.subcategory),
     region: emptyToUndef(r.region),
+    location: emptyToUndef(r.location),
     tags: arrify(r.tags),
     prerequisites: arrify(r.prerequisites),
     weight: numOr(r.weight, 1),
@@ -185,6 +188,7 @@ function normalizeKeys(row: Record<string, unknown>): Record<string, unknown> {
       case 'category':
       case 'subcategory':
       case 'region':
+      case 'location':
       case 'tags':
       case 'prerequisites':
       case 'weight':

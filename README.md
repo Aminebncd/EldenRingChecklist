@@ -38,11 +38,13 @@ si vous n'avez pas docker, installez mongodb localement ou pointez `MONGODB_URI`
 > astuce: si `docker compose` échoue avec "engine not running", ouvrez l'application docker desktop puis relancez `pnpm db:up`.
 
 ## fonctionnalités
-- liste des items avec filtres (`category`, `region`, recherche `q`) et tri `{ category, region, title }`
+- liste des items avec filtres (`category`, `region`, `location`, recherche `q`) et tri `{ category, region, title }`
 - authentification (register/login), JWT 7j; seed crée un admin `test@local` / `test1234`
 - import CSV/XLSX (SheetJS): mapping automatique des colonnes, aperçu (50 lignes), envoi vers API
 - upsert en masse côté serveur (admin): validation Zod, slug unique stable, idempotent par slug
 - UI sombre minimaliste, responsive
+ - page détail par item (`/item/:slug`) avec infos complètes et emplacement pour un résumé wiki (stub)
+ - segmentation par cartes régionales: regroupement par région > lieu et image de fond par région
 
 ## scripts
 - `pnpm dev` → lance server + web
@@ -53,15 +55,15 @@ si vous n'avez pas docker, installez mongodb localement ou pointez `MONGODB_URI`
 - `pnpm db:logs` → logs Mongo
 - `pnpm --filter @app/server import:csv` → importe le fichier `checklist_seed.csv` à la racine (ou passez un chemin: `pnpm --filter @app/server exec tsx scripts/importFromFile.ts <chemin>`)
 
-## endpoints principaux
-- `GET /items` → query `category?`, `region?`, `q?` → liste d’items
+- `GET /items` → query `category?`, `region?`, `location?`, `q?` → liste d’items
+- `GET /items/:slug` → détail d’un item (404 si introuvable)
 - `POST /items/bulk-upsert` (admin) → body: tableau conforme à `bulkUpsertSchema` → `{ count, upserted: [{ slug, created }] }`
 - `POST /auth/register`, `POST /auth/login` → JWT (7j), payload user minimal
 
 ## import csv/xlsx
 - page `import` (protégée par login)
 - formats supportés: `.csv`, `.tsv`, `.xlsx`, `.xls`
-- colonnes recommandées: `title,expansion,category,subcategory,region,tags,prerequisites,weight,notes`
+- colonnes recommandées: `title,expansion,category,subcategory,region,location,tags,prerequisites,weight,notes`
 - `tags` / `prerequisites`: chaîne séparée par `,` → tableau
 - `weight`: nombre strictement positif (défaut: 1)
  - `expansion`: `base` ou `sote` (si absent, déduit du nom de feuille pour XLSX: "base" vs "shadow")

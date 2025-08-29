@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#g2)" />
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="36" fill="#ddd" opacity="0.8">Liurnia</text>
+  <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="14" fill="#aaa" opacity="0.8">placeholder map</text>
+</svg>
